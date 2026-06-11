@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AssignMind AI — Smart Assignment Solver</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+  :root{--bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c28;--border:#2a2a3d;--accent:#7c6af7;--accent2:#f77c6a;--accent3:#6af7c8;--text:#f0f0f8;--muted:#7070a0;--gold:#f7c56a}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+  body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 20% 20%,#7c6af720,transparent),radial-gradient(ellipse 60% 40% at 80% 80%,#f77c6a15,transparent);pointer-events:none;z-index:0}
+  .container{max-width:900px;margin:0 auto;padding:20px;position:relative;z-index:1}
+  header{text-align:center;padding:36px 0 24px}
+  .logo{font-family:'Playfair Display',serif;font-size:clamp(28px,6vw,48px);font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;margin-bottom:6px}
+  .tagline{color:var(--muted);font-size:13px;letter-spacing:2px;text-transform:uppercase}
+  .badges{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+  .badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+  .bp{background:#7c6af720;color:var(--accent);border:1px solid #7c6af740}
+  .bo{background:#f77c6a20;color:var(--accent2);border:1px solid #f77c6a40}
+  .bg{background:#6af7c820;color:var(--accent3);border:1px solid #6af7c840}
+  .bgo{background:#f7c56a20;color:var(--gold);border:1px solid #f7c56a40}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px;position:relative;overflow:hidden}
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:600px){.grid2{grid-template-columns:1fr}}
+  .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;font-weight:600;display:block}
+  .fld{width:100%;padding:11px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;appearance:none;transition:border-color 0.2s}
+  .fld:focus{border-color:var(--accent);box-shadow:0 0 0 3px #7c6af720}
+  .fld option{background:#1c1c28}
+  .ta{width:100%;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.6;resize:vertical;min-height:120px;outline:none;transition:border-color 0.2s}
+  .ta:focus{border-color:var(--accent);box-shadow:0 0 0 3px #7c6af720}
+  .ta::placeholder{color:var(--muted)}
+  .type-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  @media(max-width:500px){.type-grid{grid-template-columns:repeat(2,1fr)}}
+  .type-card{padding:12px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;text-align:center;cursor:pointer;transition:all 0.2s}
+  .type-card:hover,.type-card.active{border-color:var(--accent);background:#7c6af710}
+  .type-icon{font-size:22px;margin-bottom:4px}
+  .type-name{font-size:11px;font-weight:600;color:var(--muted)}
+  .type-card.active .type-name{color:var(--accent)}
+  .itabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+  .itab{padding:7px 16px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.2s}
+  .itab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .isec{display:none}.isec.active{display:block}
+  .upzone{border:2px dashed var(--border);border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:all 0.2s;position:relative}
+  .upzone:hover{border-color:var(--accent);background:#7c6af708}
+  .upzone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+  .up-icon{font-size:32px;margin-bottom:6px}
+  .up-text{font-size:13px;color:var(--muted)}
+  .up-hint{font-size:11px;color:var(--border);margin-top:3px}
+  .finfo{margin-top:8px;padding:8px 12px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--accent3);display:none}
+  .prev-img{width:100%;max-height:180px;object-fit:contain;border-radius:8px;margin-top:8px;display:none}
+  .det-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:500px){.det-grid{grid-template-columns:1fr}}
+  .btn-solve{width:100%;padding:15px;border:none;border-radius:12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;background:linear-gradient(135deg,var(--accent),#9c8cf7);color:#fff;transition:transform 0.2s,box-shadow 0.2s;margin-top:14px}
+  .btn-solve:hover{transform:translateY(-1px);box-shadow:0 8px 30px #7c6af740}
+  .btn-solve:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+  .binn{display:flex;align-items:center;justify-content:center;gap:10px}
+  .spin{width:18px;height:18px;border:2px solid #fff4;border-top:2px solid #fff;border-radius:50%;animation:spin 0.8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .res-card{display:none;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px}
+  .res-card.active{display:block;animation:fi 0.4s ease}
+  @keyframes fi{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  .res-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+  .res-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--accent3)}
+  .res-acts{display:flex;gap:6px;flex-wrap:wrap}
+  .btn-a{padding:7px 12px;border-radius:8px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;transition:all 0.2s}
+  .btn-edit{background:#f7c56a20;color:var(--gold);border:1px solid #f7c56a40}
+  .btn-edit.on{background:#f7c56a;color:#000}
+  .btn-copy{background:#7c6af720;color:var(--accent);border:1px solid #7c6af740}
+  .btn-dl{background:#6af7c820;color:var(--accent3);border:1px solid #6af7c840}
+  .btn-new{background:#f77c6a20;color:var(--accent2);border:1px solid #f77c6a40}
+  .st-head{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;font-size:13px;line-height:2;display:none}
+  .st-head.show{display:block}
+  .st-lbl{color:var(--muted);font-size:11px}
+  .edit-hint{font-size:11px;color:var(--gold);margin-bottom:8px;display:none}
+  .edit-hint.show{display:block}
+  .res-content{background:var(--surface2);border-radius:12px;padding:18px;line-height:1.8;font-size:13px;white-space:pre-wrap;word-wrap:break-word;max-height:580px;overflow-y:auto;border:1px solid var(--border);outline:none}
+  .res-content[contenteditable=true]{border-color:var(--gold);box-shadow:0 0 0 3px #f7c56a15;cursor:text}
+  .res-meta{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+  .mchip{padding:3px 10px;background:var(--surface2);border-radius:20px;font-size:11px;color:var(--muted)}
+  .qscroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-top:8px}
+  .qscroll::-webkit-scrollbar{height:3px}
+  .qtag{padding:5px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;font-size:11px;white-space:nowrap;color:var(--muted);cursor:pointer;transition:all 0.2s;flex-shrink:0}
+  .qtag:hover,.qtag.sel{border-color:var(--accent);color:var(--accent);background:#7c6af710}
+  .cc{text-align:right;font-size:11px;color:var(--muted);margin-top:3px}
+  .ad-slot{background:var(--surface);border:1px dashed var(--border);border-radius:10px;padding:10px;text-align:center;font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:14px}
+  .sbar{padding:10px 14px;border-radius:8px;font-size:13px;margin-top:10px;display:none}
+  .sbar.load{display:block;background:#7c6af710;border:1px solid #7c6af730;color:var(--accent)}
+  .sbar.err{display:block;background:#f77c6a10;border:1px solid #f77c6a30;color:var(--accent2)}
+  footer{text-align:center;padding:20px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);margin-top:16px}
+  .toast{position:fixed;bottom:20px;right:20px;padding:11px 18px;background:var(--surface);border:1px solid var(--accent3);border-radius:10px;font-size:13px;color:var(--accent3);z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none}
+  .toast.show{opacity:1}
+  .link-wrap{position:relative}
+  .link-wrap input{padding-left:40px}
+  .link-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <div class="logo">AssignMind AI</div>
+  <div class="tagline">Smart Academic Writer — All Types · All Subjects · All Countries</div>
+  <div class="badges">
+    <span class="badge bp">✦ AI Powered</span>
+    <span class="badge bo">✦ CV & Thesis</span>
+    <span class="badge bg">✦ 100% Free</span>
+    <span class="badge bgo">✦ Editable</span>
+  </div>
+</header>
+
+<div class="ad-slot">Advertisement</div>
+
+<!-- ASSIGNMENT TYPES -->
+<div class="card">
+  <label class="lbl">Select Assignment Type</label>
+  <div class="type-grid" id="type-grid">
+    <div class="type-card active" onclick="selType(this,'Essay')"><div class="type-icon">📝</div><div class="type-name">Essay</div></div>
+    <div class="type-card" onclick="selType(this,'Research Paper')"><div class="type-icon">🔬</div><div class="type-name">Research Paper</div></div>
+    <div class="type-card" onclick="selType(this,'Case Study')"><div class="type-icon">📊</div><div class="type-name">Case Study</div></div>
+    <div class="type-card" onclick="selType(this,'Report')"><div class="type-icon">📋</div><div class="type-name">Report</div></div>
+    <div class="type-card" onclick="selType(this,'CV / Resume')"><div class="type-icon">👔</div><div class="type-name">CV / Resume</div></div>
+    <div class="type-card" onclick="selType(this,'Cover Letter')"><div class="type-icon">✉️</div><div class="type-name">Cover Letter</div></div>
+    <div class="type-card" onclick="selType(this,'Thesis / Dissertation')"><div class="type-icon">🎓</div><div class="type-name">Thesis</div></div>
+    <div class="type-card" onclick="selType(this,'Literature Review')"><div class="type-icon">📚</div><div class="type-name">Lit Review</div></div>
+    <div class="type-card" onclick="selType(this,'Reflective Journal')"><div class="type-icon">💭</div><div class="type-name">Reflective</div></div>
+    <div class="type-card" onclick="selType(this,'Lab Report')"><div class="type-icon">🧪</div><div class="type-name">Lab Report</div></div>
+    <div class="type-card" onclick="selType(this,'Short Answer Questions')"><div class="type-icon">❓</div><div class="type-name">Q&A</div></div>
+    <div class="type-card" onclick="selType(this,'Problem Solving / Math')"><div class="type-icon">🔢</div><div class="type-name">Math</div></div>
+    <div class="type-card" onclick="selType(this,'Presentation Content')"><div class="type-icon">🖥️</div><div class="type-name">Presentation</div></div>
+    <div class="type-card" onclick="selType(this,'Discussion Post')"><div class="type-icon">💬</div><div class="type-name">Discussion</div></div>
+    <div class="type-card" onclick="selType(this,'Personal Statement')"><div class="type-icon">🙋</div><div class="type-name">Personal Stmt</div></div>
+    <div class="type-card" onclick="selType(this,'Business Plan')"><div class="type-icon">💼</div><div class="type-name">Business Plan</div></div>
+  </div>
+</div>
+
+<!-- QUICK SUBJECTS -->
+<div class="card" style="padding:16px 20px">
+  <label class="lbl">Quick Subject</label>
+  <div class="qscroll" id="qscroll"></div>
+</div>
+
+<!-- MAIN FORM -->
+<div class="card">
+  <div class="grid2" style="margin-bottom:12px">
+    <div>
+      <label class="lbl">Subject / Field</label>
+      <select id="subject" class="fld">
+        <option value="">— Select Subject —</option>
+        <optgroup label="Business"><option>Business Management</option><option>Marketing</option><option>Finance & Accounting</option><option>Human Resource Management</option><option>Economics</option><option>International Business</option><option>Entrepreneurship</option><option>Project Management</option><option>Supply Chain Management</option></optgroup>
+        <optgroup label="Computer Science"><option>Computer Science</option><option>Software Engineering</option><option>Data Science & AI</option><option>Cybersecurity</option><option>Web Development</option><option>Database Management</option></optgroup>
+        <optgroup label="Engineering"><option>Civil Engineering</option><option>Mechanical Engineering</option><option>Electrical Engineering</option><option>Chemical Engineering</option><option>Environmental Engineering</option></optgroup>
+        <optgroup label="Medical & Health"><option>Nursing</option><option>Medicine & Healthcare</option><option>Pharmacy</option><option>Public Health</option><option>Psychology</option><option>Physiotherapy</option></optgroup>
+        <optgroup label="Law & Social"><option>Law & Legal Studies</option><option>Criminology</option><option>Sociology</option><option>Political Science</option><option>Social Work</option><option>International Relations</option></optgroup>
+        <optgroup label="Science & Maths"><option>Mathematics & Statistics</option><option>Physics</option><option>Chemistry</option><option>Biology</option><option>Environmental Science</option></optgroup>
+        <optgroup label="Arts & Humanities"><option>English Literature</option><option>History</option><option>Philosophy</option><option>Media & Communications</option><option>Education & Teaching</option><option>Journalism</option></optgroup>
+        <optgroup label="Other"><option>Architecture</option><option>Hospitality & Tourism</option><option>Fashion & Design</option><option>Sports Science</option><option>Agriculture</option><option>Other Subject</option></optgroup>
+      </select>
+    </div>
+    <div>
+      <label class="lbl">Degree Level</label>
+      <select id="degree" class="fld">
+        <option value="">— Select Level —</option>
+        <option>High School / A-Level</option><option>Diploma / Foundation</option>
+        <option>Bachelor's (Year 1)</option><option>Bachelor's (Year 2)</option>
+        <option>Bachelor's (Year 3)</option><option>Master's (MSc/MBA/MA)</option>
+        <option>PhD / Doctorate</option><option>Professional Certificate</option>
+      </select>
+    </div>
+    <div>
+      <label class="lbl">Country</label>
+      <select id="country" class="fld">
+        <option value="">— Select Country —</option>
+        <option>United Kingdom (UK)</option><option>United States (USA)</option>
+        <option>Australia</option><option>Canada</option><option>UAE</option>
+        <option>Saudi Arabia</option><option>Pakistan</option><option>India</option>
+        <option>Malaysia</option><option>New Zealand</option><option>Ireland</option>
+        <option>Germany</option><option>Other</option>
+      </select>
+    </div>
+    <div>
+      <label class="lbl">Word Count</label>
+      <select id="wordcount" class="fld">
+        <option value="">— Any Length —</option>
+        <option value="250">250 words</option><option value="500">500 words</option>
+        <option value="750">750 words</option><option value="1000">1000 words</option>
+        <option value="1500">1500 words</option><option value="2000">2000 words</option>
+        <option value="2500">2500 words</option><option value="3000">3000 words</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- STUDENT DETAILS -->
+  <div style="margin-bottom:14px">
+    <label class="lbl" style="margin-bottom:8px">👤 Your Details (Optional)</label>
+    <div class="det-grid">
+      <div><label class="lbl" style="font-size:10px">Student Name</label><input type="text" id="st-name" class="fld" placeholder="e.g. John Smith"/></div>
+      <div><label class="lbl" style="font-size:10px">Student ID</label><input type="text" id="st-id" class="fld" placeholder="e.g. STU-2024-001"/></div>
+      <div><label class="lbl" style="font-size:10px">University / College</label><input type="text" id="st-uni" class="fld" placeholder="e.g. University of Manchester"/></div>
+      <div><label class="lbl" style="font-size:10px">Course / Module</label><input type="text" id="st-course" class="fld" placeholder="e.g. MBA Marketing"/></div>
+      <div><label class="lbl" style="font-size:10px">Submission Date</label><input type="date" id="st-date" class="fld"/></div>
+      <div><label class="lbl" style="font-size:10px">Lecturer / Tutor</label><input type="text" id="st-tutor" class="fld" placeholder="e.g. Dr. Ahmed Khan"/></div>
+    </div>
+  </div>
+
+  <!-- INPUT TABS -->
+  <label class="lbl" style="margin-bottom:8px">Input Method</label>
+  <div class="itabs">
+    <button class="itab active" onclick="switchTab('text',this)">✍️ Type</button>
+    <button class="itab" onclick="switchTab('image',this)">📷 Image</button>
+    <button class="itab" onclick="switchTab('pdf',this)">📄 PDF</button>
+    <button class="itab" onclick="switchTab('link',this)">🔗 Link</button>
+  </div>
+
+  <div class="isec active" id="tab-text">
+    <textarea id="question" class="ta" placeholder="Type or paste your assignment question here..."></textarea>
+    <div class="cc"><span id="cc">0</span> characters</div>
+  </div>
+
+  <div class="isec" id="tab-image">
+    <div class="upzone"><input type="file" accept="image/*" onchange="handleImg(event)"/>
+      <div class="up-icon">📷</div><div class="up-text">Tap to upload assignment image</div><div class="up-hint">JPG, PNG, WEBP</div>
+    </div>
+    <img id="prev-img" class="prev-img" alt="preview"/>
+    <div class="finfo" id="img-info"></div>
+  </div>
+
+  <div class="isec" id="tab-pdf">
+    <div class="upzone"><input type="file" accept=".pdf,application/pdf" onchange="handlePDF(event)"/>
+      <div class="up-icon">📄</div><div class="up-text">Tap to upload PDF assignment</div><div class="up-hint">PDF files only</div>
+    </div>
+    <div class="finfo" id="pdf-info"></div>
+  </div>
+
+  <div class="isec" id="tab-link">
+    <div class="link-wrap">
+      <span class="link-ico">🔗</span>
+      <input type="url" id="link-url" class="fld" placeholder="https://example.com/assignment..." style="padding-left:38px"/>
+    </div>
+    <p style="font-size:11px;color:var(--muted);margin-top:6px">Paste the full URL of the assignment page</p>
+    <div style="margin-top:10px">
+      <label class="lbl" style="font-size:10px">Additional Instructions</label>
+      <textarea id="link-extra" class="ta" style="min-height:70px" placeholder="Any specific requirements..."></textarea>
+    </div>
+  </div>
+
+  <div class="sbar" id="sbar"></div>
+  <button class="btn-solve" id="solve-btn" onclick="solve()">
+    <div class="binn"><span>✦</span><span id="btn-text">Generate Solution</span><span>✦</span></div>
+  </button>
+</div>
+
+<div class="ad-slot">Advertisement</div>
+
+<!-- RESULT -->
+<div class="res-card" id="res-card">
+  <div class="res-head">
+    <div class="res-title">✦ Your Solution</div>
+    <div class="res-acts">
+      <button class="btn-a btn-edit" id="edit-btn" onclick="toggleEdit()">✏️ Edit</button>
+      <button class="btn-a btn-copy" onclick="copyRes()">📋 Copy</button>
+      <button class="btn-a btn-dl" onclick="dlRes()">⬇️ Download</button>
+      <button class="btn-a btn-new" onclick="newOne()">✦ New</button>
+    </div>
+  </div>
+  <div class="st-head" id="st-head"></div>
+  <div class="edit-hint" id="edit-hint">✏️ Edit mode ON — tap anywhere to make changes</div>
+  <div class="res-content" id="res-content" contenteditable="false" spellcheck="true"></div>
+  <div class="res-meta" id="res-meta"></div>
+</div>
+
+<div class="ad-slot">Advertisement</div>
+
+<footer>AssignMind AI · All Subjects · All Countries · 100% Free<br><span style="font-size:10px;opacity:0.5">Powered by Google Gemini AI · For educational purposes</span></footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// GEMINI API KEY
+const GEMINI_API_KEY = "AQ.Ab8RN6K9_oOENw1_xor5AMZUQR4qaRazCOCjQf1pmdS3trSkgQ";
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+// QUICK SUBJECTS
+const qs=["Business Management","Computer Science","Nursing","Law","Marketing","Finance","Engineering","Psychology","Education","Economics","Data Science","Medicine","English Lit","Mathematics","Sociology","HR Management","Public Health","Project Management"];
+const sc=document.getElementById("qscroll");
+qs.forEach(s=>{const t=document.createElement("div");t.className="qtag";t.textContent=s;t.onclick=()=>{document.getElementById("subject").value=s;document.querySelectorAll(".qtag").forEach(x=>x.classList.remove("sel"));t.classList.add("sel");};sc.appendChild(t);});
+
+let activeTab="text",imgB64=null,imgMime="image/jpeg",pdfB64=null,isEdit=false,selAType="Essay";
+
+function selType(el,type){
+  document.querySelectorAll(".type-card").forEach(c=>c.classList.remove("active"));
+  el.classList.add("active");selAType=type;
+}
+
+function switchTab(tab,btn){
+  activeTab=tab;
+  document.querySelectorAll(".isec").forEach(s=>s.classList.remove("active"));
+  document.querySelectorAll(".itab").forEach(b=>b.classList.remove("active"));
+  document.getElementById("tab-"+tab).classList.add("active");btn.classList.add("active");
+}
+
+document.getElementById("question").addEventListener("input",function(){document.getElementById("cc").textContent=this.value.length;});
+
+function handleImg(e){
+  const f=e.target.files[0];if(!f)return;
+  imgMime=f.type||"image/jpeg";
+  const r=new FileReader();r.onload=ev=>{
+    imgB64=ev.target.result.split(",")[1];
+    const p=document.getElementById("prev-img");p.src=ev.target.result;p.style.display="block";
+    const i=document.getElementById("img-info");i.textContent="✅ "+f.name+" ("+Math.round(f.size/1024)+" KB)";i.style.display="block";
+  };r.readAsDataURL(f);
+}
+
+function handlePDF(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();r.onload=ev=>{
+    pdfB64=ev.target.result.split(",")[1];
+    const i=document.getElementById("pdf-info");i.textContent="✅ "+f.name+" ("+Math.round(f.size/1024)+" KB) — Ready!";i.style.display="block";
+  };r.readAsDataURL(f);
+}
+
+function setStatus(msg,type){const e=document.getElementById("sbar");e.textContent=msg;e.className="sbar "+type;}
+function clrStatus(){document.getElementById("sbar").className="sbar";}
+
+async function solve(){
+  const subject=document.getElementById("subject").value;
+  const degree=document.getElementById("degree").value;
+  const country=document.getElementById("country").value;
+  const wc=document.getElementById("wordcount").value;
+  const stName=document.getElementById("st-name").value;
+  const stId=document.getElementById("st-id").value;
+  const stUni=document.getElementById("st-uni").value;
+  const stCourse=document.getElementById("st-course").value;
+  const stDate=document.getElementById("st-date").value;
+  const stTutor=document.getElementById("st-tutor").value;
+
+  if(activeTab==="text"&&!document.getElementById("question").value.trim()){showToast("⚠️ Please enter your assignment!");return;}
+  if(activeTab==="image"&&!imgB64){showToast("⚠️ Please upload an image!");return;}
+  if(activeTab==="pdf"&&!pdfB64){showToast("⚠️ Please upload a PDF!");return;}
+  if(activeTab==="link"&&!document.getElementById("link-url").value.trim()){showToast("⚠️ Please paste a link!");return;}
+
+  const btn=document.getElementById("solve-btn");
+  btn.disabled=true;
+  document.getElementById("btn-text").innerHTML='<div class="spin"></div> AI Writing...';
+  document.getElementById("res-card").classList.remove("active");
+
+  try{
+    const wcInst=wc?`Write approximately ${wc} words.`:"Write a comprehensive detailed response.";
+
+    let typeInst="";
+    if(selAType==="CV / Resume")typeInst="Create a professional well-formatted CV with: Personal Details, Professional Summary, Work Experience, Education, Skills, Achievements sections.";
+    else if(selAType==="Cover Letter")typeInst="Write a compelling professional cover letter with: Opening, why interested, relevant skills/experience, closing paragraph.";
+    else if(selAType==="Thesis / Dissertation")typeInst="Write the requested thesis chapter with proper academic structure, citations, critical analysis.";
+    else if(selAType==="Business Plan")typeInst="Write a professional business plan with: Executive Summary, Business Description, Market Analysis, Products/Services, Marketing Strategy, Financial overview.";
+    else if(selAType==="Personal Statement")typeInst="Write a compelling personal statement including: motivation, relevant experience, skills, future goals.";
+    else typeInst=`Write a high-quality ${selAType} with proper structure: introduction, body paragraphs, conclusion. Use Harvard referencing where appropriate.`;
+
+    const prompt=`You are an expert academic writer. ${typeInst}
+
+Details:
+- Assignment Type: ${selAType}
+- Subject: ${subject||"General"}
+- Level: ${degree||"Undergraduate"}
+- Country: ${country||"UK"}
+- ${wcInst}
+
+Adapt writing style to the country (UK=critical analysis, USA=thesis statements, Australia=real-world application).
+Use appropriate academic language for the level.
+For math show all working steps.
+
+Assignment Question/Instructions:
+`;
+
+    let parts=[];
+
+    if(activeTab==="text"){
+      const q=document.getElementById("question").value.trim();
+      parts=[{text:prompt+q+"\n\nPlease write a complete high-quality solution."}];
+    }
+    else if(activeTab==="image"){
+      setStatus("🔍 Reading image...","load");
+      parts=[
+        {inlineData:{mimeType:imgMime,data:imgB64}},
+        {text:prompt+"[See the uploaded image for the assignment question]\n\nPlease read the image and write a complete solution."}
+      ];
+    }
+    else if(activeTab==="pdf"){
+      setStatus("📄 Processing PDF...","load");
+      parts=[
+        {inlineData:{mimeType:"application/pdf",data:pdfB64}},
+        {text:prompt+"[See the uploaded PDF for the assignment question]\n\nPlease read the PDF and write a complete solution."}
+      ];
+    }
+    else if(activeTab==="link"){
+      const url=document.getElementById("link-url").value.trim();
+      const extra=document.getElementById("link-extra").value.trim();
+      setStatus("🔗 Fetching link...","load");
+      let pc="";
+      try{
+        const r=await fetch("https://api.allorigins.win/get?url="+encodeURIComponent(url));
+        const d=await r.json();
+        if(d.contents){const tmp=document.createElement("div");tmp.innerHTML=d.contents;pc=(tmp.textContent||"").replace(/\s+/g," ").trim().substring(0,3000);}
+      }catch(e){}
+      parts=[{text:prompt+"Link: "+url+(pc?"\n\nPage Content:\n"+pc:"")+(extra?"\n\nExtra: "+extra:"")+"\n\nWrite a complete solution."}];
+    }
+
+    clrStatus();
+    setStatus("🤖 Gemini AI is writing your solution...","load");
+
+    const response=await fetch(GEMINI_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        contents:[{parts:parts}],
+        generationConfig:{maxOutputTokens:4096,temperature:0.7}
+      })
+    });
+
+    const data=await response.json();
+
+    if(data.error){
+      throw new Error(data.error.message||"API Error");
+    }
+
+    const result=data.candidates[0].content.parts[0].text;
+    clrStatus();
+
+    // Student header
+    let headerHTML="";
+    if(stName||stId||stUni||stCourse||stDate||stTutor){
+      if(stName)headerHTML+=`<div><span class="st-lbl">Student Name: </span><strong>${stName}</strong></div>`;
+      if(stId)headerHTML+=`<div><span class="st-lbl">Student ID: </span><strong>${stId}</strong></div>`;
+      if(stUni)headerHTML+=`<div><span class="st-lbl">University: </span><strong>${stUni}</strong></div>`;
+      if(stCourse)headerHTML+=`<div><span class="st-lbl">Course: </span><strong>${stCourse}</strong></div>`;
+      if(stDate)headerHTML+=`<div><span class="st-lbl">Submission Date: </span><strong>${stDate}</strong></div>`;
+      if(stTutor)headerHTML+=`<div><span class="st-lbl">Lecturer: </span><strong>${stTutor}</strong></div>`;
+    }
+    const sh=document.getElementById("st-head");
+    if(headerHTML){sh.innerHTML=headerHTML;sh.className="st-head show";}
+    else sh.className="st-head";
+
+    document.getElementById("res-content").textContent=result;
+    document.getElementById("res-content").contentEditable="false";
+    document.getElementById("edit-btn").textContent="✏️ Edit";
+    document.getElementById("edit-btn").classList.remove("on");
+    document.getElementById("edit-hint").classList.remove("show");
+    isEdit=false;
+
+    const wcount=result.split(/\s+/).filter(w=>w).length;
+    document.getElementById("res-meta").innerHTML=`
+      <span class="mchip">📝 ${wcount} words</span>
+      <span class="mchip">📄 ${selAType}</span>
+      ${subject?`<span class="mchip">📚 ${subject}</span>`:""}
+      ${degree?`<span class="mchip">🎓 ${degree}</span>`:""}
+      ${country?`<span class="mchip">🌍 ${country}</span>`:""}
+      <span class="mchip" style="color:var(--gold)">✏️ Tap Edit to customize</span>`;
+
+    document.getElementById("res-card").classList.add("active");
+    document.getElementById("res-card").scrollIntoView({behavior:"smooth",block:"start"});
+
+  }catch(err){
+    clrStatus();
+    setStatus("❌ Error: "+err.message,"err");
+    showToast("❌ "+err.message);
+    console.error(err);
+  }
+
+  btn.disabled=false;
+  document.getElementById("btn-text").innerHTML="Generate Solution";
+}
+
+function toggleEdit(){
+  isEdit=!isEdit;
+  const c=document.getElementById("res-content");
+  const b=document.getElementById("edit-btn");
+  const h=document.getElementById("edit-hint");
+  if(isEdit){c.contentEditable="true";c.focus();b.textContent="✅ Done";b.classList.add("on");h.classList.add("show");showToast("✏️ Edit mode ON");}
+  else{c.contentEditable="false";b.textContent="✏️ Edit";b.classList.remove("on");h.classList.remove("show");showToast("✅ Saved!");}
+}
+
+function getFullText(){
+  const h=document.getElementById("st-head");
+  const c=document.getElementById("res-content");
+  let txt="";
+  if(h.classList.contains("show"))txt+=h.innerText+"\n\n"+"─".repeat(40)+"\n\n";
+  txt+=c.innerText||c.textContent;
+  return txt;
+}
+
+function copyRes(){navigator.clipboard.writeText(getFullText()).then(()=>showToast("✅ Copied!"));}
+
+function dlRes(){
+  const text=getFullText();
+  const name=document.getElementById("st-name").value||"Solution";
+  const type=selAType.replace(/\//g,"-");
+  const blob=new Blob([text],{type:"text/plain"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;a.download=type+"_"+name+".txt";a.click();
+  URL.revokeObjectURL(url);showToast("⬇️ Downloaded!");
+}
+
+function newOne(){
+  document.getElementById("question").value="";document.getElementById("cc").textContent="0";
+  document.getElementById("res-card").classList.remove("active");
+  document.getElementById("prev-img").style.display="none";
+  document.getElementById("img-info").style.display="none";
+  document.getElementById("pdf-info").style.display="none";
+  document.getElementById("link-url").value="";document.getElementById("link-extra").value="";
+  ["st-name","st-id","st-uni","st-course","st-date","st-tutor"].forEach(id=>document.getElementById(id).value="");
+  imgB64=null;pdfB64=null;isEdit=false;clrStatus();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function showToast(msg){
+  const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),3000);
+}
+</script>
+</body>
+</html>
